@@ -5,7 +5,7 @@ package com.devonfw.module.basic.common.api.query;
  *
  * @since 3.0.0
  */
-public enum StringSearchOperator {
+public enum StringSearchOperator implements SearchOperator {
 
   /** Matches if strings are {@link String#equals(Object) equal}. */
   EQ("=="),

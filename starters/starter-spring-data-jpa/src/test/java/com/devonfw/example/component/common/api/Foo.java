@@ -12,4 +12,12 @@ public interface Foo extends TestApplicationEntity {
 
   void setName(String name);
 
+  void setCreatedAt(java.util.Date createdAt);
+
+  java.util.Date getCreatedAt();
+
+  void setCount(Integer count);
+
+  Integer getCount();
+
 }

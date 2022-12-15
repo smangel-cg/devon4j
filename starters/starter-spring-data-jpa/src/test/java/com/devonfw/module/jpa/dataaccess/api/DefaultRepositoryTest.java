@@ -3,6 +3,7 @@ package com.devonfw.module.jpa.dataaccess.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,8 @@ import com.devonfw.example.TestApplication;
 import com.devonfw.example.component.common.api.to.FooSearchCriteriaTo;
 import com.devonfw.example.component.dataaccess.api.FooEntity;
 import com.devonfw.example.component.dataaccess.api.FooRepository;
+import com.devonfw.module.basic.common.api.query.ComparableSearchConfigTo;
+import com.devonfw.module.basic.common.api.query.ComparableSearchOperator;
 import com.devonfw.module.basic.common.api.query.LikePatternSyntax;
 import com.devonfw.module.basic.common.api.query.StringSearchConfigTo;
 import com.devonfw.module.basic.common.api.query.StringSearchOperator;
@@ -52,6 +55,12 @@ public class DefaultRepositoryTest extends ComponentTest {
 
   @Inject
   private TransactionTemplate template;
+
+  private static final Date EXAMPLE_DATE_1 = new Date(1640991600000L); // 1st Jan 2022 00:00
+
+  private static final Date EXAMPLE_DATE_2 = new Date(1641078000000L); // 2nd Jan 2022 00:00
+
+  private static final Date EXAMPLE_DATE_3 = new Date(1641164400000L); // 3rd Jan 2022 00:00
 
   private <T> T doInTx(TransactionCallback<T> lambda) {
 
@@ -83,14 +92,22 @@ public class DefaultRepositoryTest extends ComponentTest {
 
   private FooEntity newFoo(String message) {
 
-    return newFoo(message, message);
+    return newFoo(message, message, 1, EXAMPLE_DATE_1);
   }
 
   private FooEntity newFoo(String message, String name) {
 
+    return newFoo(message, name, 1, EXAMPLE_DATE_1);
+
+  }
+
+  private FooEntity newFoo(String message, String name, int count, Date createdAt) {
+
     FooEntity entity = new FooEntity();
     entity.setMessage(message);
     entity.setName(name);
+    entity.setCount(count);
+    entity.setCreatedAt(createdAt);
     this.fooRepository.save(entity);
     assertThat(entity.getId()).isNotNull();
     assertThat(entity.getModificationCounter()).isEqualTo(0);
@@ -215,6 +232,72 @@ public class DefaultRepositoryTest extends ComponentTest {
     // then
     assertThat(hits.getContent().stream().map(x -> x.getMessage()).collect(Collectors.toList())).containsExactly("Aaa",
         "MY_TEST", "Sometest", "Testing", "Xtest", "Xxx");
+  }
+
+  /**
+   * Tests the extension of SearchConfig options for Comparable types
+   */
+  @Test
+  @Transactional
+  public void testFindByCriteriaComparableExtension() {
+
+    this.fooRepository.deleteAll();
+
+    // given
+    FooSearchCriteriaTo criteria = new FooSearchCriteriaTo();
+    criteria.setCreatedAt(EXAMPLE_DATE_2);
+    criteria.setCreatedAtOption(ComparableSearchConfigTo.of(ComparableSearchOperator.LE));
+
+    PageRequest pageable = PageRequest.of(0, 100, Sort.by(Direction.DESC, "message"));
+    criteria.setPageable(pageable);
+
+    List<Date> values = new ArrayList<>(Arrays.asList(EXAMPLE_DATE_1, EXAMPLE_DATE_2, EXAMPLE_DATE_3));
+    Collections.shuffle(values);
+    for (Date date : values) {
+      newFoo("Foo", "Bar", 1, date);
+    }
+
+    // when
+    Page<FooEntity> hits = this.fooRepository.findByCriteria(criteria);
+    List<Date> dateHits = hits.get().map(x -> x.getCreatedAt()).collect(Collectors.toList());
+
+    // then
+    assertThat(dateHits).contains(EXAMPLE_DATE_1, EXAMPLE_DATE_2);
+    assertThat(dateHits).doesNotContain(EXAMPLE_DATE_3);
+
+  }
+
+  /**
+   * Tests the extension of SearchConfig options for Number types
+   */
+  @Test
+  @Transactional
+  public void testFindByCriteriaNumberExtension() {
+
+    this.fooRepository.deleteAll();
+
+    // given
+    FooSearchCriteriaTo criteria = new FooSearchCriteriaTo();
+    criteria.setCount(3);
+    criteria.setCountOption(ComparableSearchConfigTo.of(ComparableSearchOperator.GT));
+
+    PageRequest pageable = PageRequest.of(0, 100, Sort.by(Direction.DESC, "message"));
+    criteria.setPageable(pageable);
+
+    List<Integer> values = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 10));
+    Collections.shuffle(values);
+    for (Integer num : values) {
+      newFoo("Foo", "Bar", num, EXAMPLE_DATE_1);
+    }
+
+    // when
+    Page<FooEntity> hits = this.fooRepository.findByCriteria(criteria);
+    List<Integer> countHits = hits.get().map(x -> x.getCount()).collect(Collectors.toList());
+
+    // then
+    assertThat(countHits).contains(4, 5, 10);
+    assertThat(countHits).doesNotContain(1, 2, 3);
+
   }
 
 };

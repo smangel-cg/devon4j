@@ -18,6 +18,10 @@ public class FooEntity extends TestApplicationPersistenceEntity implements Foo {
 
   private String name;
 
+  private Integer count;
+
+  private java.util.Date createdAt;
+
   @Override
   public String getMessage() {
 
@@ -40,6 +44,30 @@ public class FooEntity extends TestApplicationPersistenceEntity implements Foo {
   public void setName(String name) {
 
     this.name = name;
+  }
+
+  @Override
+  public Integer getCount() {
+
+    return this.count;
+  }
+
+  @Override
+  public void setCount(Integer count) {
+
+    this.count = count;
+  }
+
+  @Override
+  public java.util.Date getCreatedAt() {
+
+    return this.createdAt;
+  }
+
+  @Override
+  public void setCreatedAt(java.util.Date createdAt) {
+
+    this.createdAt = createdAt;
   }
 
 }

@@ -7,9 +7,7 @@ import com.devonfw.module.basic.common.api.to.AbstractTo;
  *
  * @since 3.0.0
  */
-public class StringSearchConfigTo extends AbstractTo {
-
-  private static final long serialVersionUID = 1L;
+public class StringSearchConfigTo extends SearchConfigTo {
 
   private boolean ignoreCase;
 

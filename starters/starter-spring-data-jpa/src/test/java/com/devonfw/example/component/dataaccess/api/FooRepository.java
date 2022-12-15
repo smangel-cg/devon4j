@@ -2,6 +2,8 @@ package com.devonfw.example.component.dataaccess.api;
 
 import static com.querydsl.core.alias.Alias.$;
 
+import java.util.Date;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -38,6 +40,14 @@ public interface FooRepository extends DefaultRepository<FooEntity> {
     String message = criteria.getMessage();
     if ((message != null) && !message.isEmpty()) {
       QueryUtil.get().whereString(query, $(alias.getMessage()), message, criteria.getMessageOption());
+    }
+    Integer count = criteria.getCount();
+    if (count != null) {
+      QueryUtil.get().whereNumber(query, $(alias.getCount()), count, criteria.getCountOption());
+    }
+    Date createdAt = criteria.getCreatedAt();
+    if (createdAt != null) {
+      QueryUtil.get().whereComparable(query, $(alias.getCreatedAt()), createdAt, criteria.getCreatedAtOption());
     }
     return QueryUtil.get().findPaginated(criteria.getPageable(), query, false);
   }

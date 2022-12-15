@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.util.StringUtils;
 
+import com.devonfw.module.basic.common.api.query.ComparableSearchConfigTo;
+import com.devonfw.module.basic.common.api.query.ComparableSearchOperator;
 import com.devonfw.module.basic.common.api.query.LikePatternSyntax;
 import com.devonfw.module.basic.common.api.query.StringSearchConfigTo;
 import com.devonfw.module.basic.common.api.query.StringSearchOperator;
@@ -22,8 +24,11 @@ import com.querydsl.core.JoinExpression;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ComparableExpression;
 import com.querydsl.core.types.dsl.ComparablePath;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringExpression;
@@ -421,6 +426,87 @@ public class QueryHelper {
       alias = StringUtils.uncapitalize(type.getSimpleName());
     }
     return new PathBuilder<>(type, alias);
+  }
+
+  /**
+   * Generic query helper method for number types.
+   *
+   * @param <T> The number type
+   * @param query The query to modify
+   * @param expression The expression
+   * @param value The value to use in the predicate
+   * @param config The config, containing a comparable operator. We use {@link ComparableSearchConfigTo} here, because
+   *        numbers use the same operator base.
+   */
+  protected <T extends Number & Comparable<?>> void whereNumber(JPAQuery<?> query, NumberExpression<T> expression,
+      T value, ComparableSearchConfigTo config) {
+
+    NumberExpression<T> exp = expression;
+    Predicate pred = exp.eq(value);
+    if (config != null) {
+      ComparableSearchOperator op = config.getOperator();
+      switch (op) {
+        case GE:
+          pred = exp.goe(value);
+          break;
+        case GT:
+          pred = exp.gt(value);
+          break;
+        case LE:
+          pred = exp.loe(value);
+          break;
+        case LT:
+          pred = exp.lt(value);
+          break;
+        case NE:
+          pred = exp.ne(value);
+          break;
+        default:
+          // Not handled. Default to eq.
+      }
+    }
+    query.where(pred);
+
+  }
+
+  /**
+   * Generic query helper method for comparable types, excluding numbers.
+   *
+   * @param <T> The comparable type
+   * @param query The query to modify
+   * @param expression the expression
+   * @param value The value to use in the predicate
+   * @param config The config, containing the comparable operator
+   */
+  protected <T extends Comparable<?>> void whereComparable(JPAQuery<?> query, ComparableExpression<T> expression,
+      T value, ComparableSearchConfigTo config) {
+
+    ComparableExpression<T> exp = expression;
+    Predicate pred = exp.eq(value);
+    if (config != null) {
+      ComparableSearchOperator op = config.getOperator();
+      switch (op) {
+        case GE:
+          pred = exp.goe(value);
+          break;
+        case GT:
+          pred = exp.gt(value);
+          break;
+        case LE:
+          pred = exp.loe(value);
+          break;
+        case LT:
+          pred = exp.lt(value);
+          break;
+        case NE:
+          pred = exp.ne(value);
+          break;
+        default:
+          // Not handled. Default to eq.
+      }
+    }
+    query.where(pred);
+
   }
 
 }

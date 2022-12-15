@@ -5,10 +5,13 @@ import java.util.Collection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.devonfw.module.basic.common.api.query.ComparableSearchConfigTo;
 import com.devonfw.module.basic.common.api.query.LikePatternSyntax;
 import com.devonfw.module.basic.common.api.query.StringSearchConfigTo;
 import com.devonfw.module.basic.common.api.query.StringSearchOperator;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ComparableExpression;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -60,6 +63,20 @@ public class QueryUtil extends QueryHelper {
       boolean ignoreCase, boolean matchSubstring) {
 
     super.whereNotLike(query, expression, pattern, syntax, ignoreCase, matchSubstring);
+  }
+
+  @Override
+  public <T extends Number & Comparable<?>> void whereNumber(JPAQuery<?> query, NumberExpression<T> expression, T value,
+      ComparableSearchConfigTo config) {
+
+    super.whereNumber(query, expression, value, config);
+  }
+
+  @Override
+  public <T extends Comparable<?>> void whereComparable(JPAQuery<?> query, ComparableExpression<T> expression, T value,
+      ComparableSearchConfigTo config) {
+
+    super.whereComparable(query, expression, value, config);
   }
 
   @Override
